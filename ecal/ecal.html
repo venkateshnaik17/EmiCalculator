@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive EMI Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e0f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1000px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        #logo {
+            margin-bottom: 20px;
+        }
+
+        #content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        #calculator {
+            flex: 1;
+            padding: 20px;
+            margin-right: 20px;
+            background-color: #fff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        #chart-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2, h3 {
+            color: #00796b;
+            margin-bottom: 20px;
+        }
+
+        label {
+            color: #00796b;
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #b2dfdb;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #00796b;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #004d40;
+        }
+
+        #emi-summary {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #emi-summary span {
+            display: block;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+
+        #emi-result {
+            color: #00796b;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        #chart {
+            max-width: 300px;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="image">
+            <img src="ecal/image/VenkateshNaik.png" alt="VenkateshNaik" width="100">
+        </div>
+
+        <div id="content">
+            <div id="calculator">
+                <h2>EMI Calculator</h2>
+                <label for="principal">Principal Amount</label>
+                <input type="number" id="principal" placeholder="Enter principal amount" />
+
+                <label for="rate">Interest Rate (%)</label>
+                <input type="number" id="rate" placeholder="Enter interest rate" />
+
+                <label for="months">Loan Tenure (Months)</label>
+                <input type="number" id="months" placeholder="Enter loan tenure in months" />
+
+                <button onclick="calculateEMI()">Calculate EMI</button>
+
+                <h3 id="emi-result"></h3>
+            </div>
+
+            <div id="chart-container">
+                <div id="emi-summary">
+                    <span id="total-interest"></span>
+                    <span id="monthly-interest"></span>
+                    <span id="emi"></span>
+                    <span id="total-amount"></span>
+                </div>
+
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pieChart = null;
+
+        function calculateEMI() {
+            const principal = parseFloat(document.getElementById('principal').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const months = parseInt(document.getElementById('months').value);
+
+            // EMI Calculation for Flat Interest Rate
+            const monthlyRate = rate / (12 * 100);
+            const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+            const totalAmount = emi * months;
+            const totalInterest = totalAmount - principal;
+
+            // Display EMI Summary
+            document.getElementById('emi').innerText = `Monthly EMI: ₹${emi.toFixed(2)}`;
+            document.getElementById('total-interest').innerText = `Total Interest: ₹${totalInterest.toFixed(2)}`;
+            document.getElementById('monthly-interest').innerText = `Monthly Interest: ₹${(totalInterest / months).toFixed(2)}`;
+            document.getElementById('total-amount').innerText = `Total Amount (Principal + Interest): ₹${totalAmount.toFixed(2)}`;
+
+            // Clear previous chart instance if it exists
+            if (pieChart) {
+                pieChart.destroy();
+            }
+
+            // Pie Chart for Principal and Interest
+            const ctxPie = document.getElementById('chart').getContext('2d');
+            pieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Principal', 'Interest'],
+                    datasets: [{
+                        data: [principal, totalInterest],
+                        backgroundColor: ['#4db6ac', '#ff8a65']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutBounce'
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
